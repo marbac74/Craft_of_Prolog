@@ -26,6 +26,17 @@ min_and_max(X, Y, X, Y) :- X < Y.
 min_and_max(X, Y, Y, X) :- X >= Y.
 
 % Context Arguments
+
+% Reducing a list of numbers
+
+reduce(List, Result) :-
+    reduce(List, 0, Result).
+
+reduce([], Result, Result).
+reduce([H|T], Partial, Result) :-
+    NewPartial is Partial + H,
+    reduce(T, NewPartial, Result).
+
 % Mapping a list of numbers
 
 scale([], _, []).
