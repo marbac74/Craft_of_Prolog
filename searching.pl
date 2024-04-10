@@ -78,11 +78,10 @@ queue_last_list_1(Lasts, Queue, NewQueue) :-
 
 empty_queue_2([]+[]).
 
-queue_head_2(Head, L1+R1, L2+R2) :-
-    queue_head_2(L2, R2, L1, R1, Head).
-queue_head_2([], R, L, [], Head) :-
+queue_head_2(Head, L+R, [Head|L]+R).
+queue_head_2(Head, L+[], []+R) :-
     reverse(R, [Head|L]).
-queue_head_2([Head|L], R, L, R, Head).
 
-queue_last_2(Last, L1+R1, L2+R2) :-
-    queue_head_2(R2, L2, R1, L1, Last).
+queue_last_2(Last, L+R, L+[Last|R]).
+queue_last_2(Last, []+R, L+[]) :-
+    reverse(L, [Last|R]).
