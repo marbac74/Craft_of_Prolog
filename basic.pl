@@ -101,3 +101,23 @@ sum_and_ssq([X|Xs], Sum0, Sum, SSQ0, SSQ) :-
     Sum1 is Sum0 + X,
     SSQ1 is SSQ0 + X*X,
     sum_and_ssq(Xs, Sum1, Sum, SSQ1, SSQ).
+
+% Predicates to check whether Term is a proper list or a partial one
+% Useful in determining the value of partial data structures in Prolog
+
+is_proper_list(Term) :-
+    classify_list(Term, proper, proper).
+
+is_partial_list(Term) :-
+    classify_list(Term, proper, partial).
+
+is_list(Term) :-
+    classify_list(Term, partial, partial).
+
+classify_list(V, _, X) :-
+    var(V),
+    !,
+    X = partial.
+classify_list([], X, X).
+classify_list([_|T], X0, X) :-
+    classify_list(T, X0, X).
