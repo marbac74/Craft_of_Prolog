@@ -31,3 +31,16 @@ dequeue(Item, queue(Q)) :-
     queue([Item|NewQ]),
     retract(queue(Q)),
     assertz(queue(NewQ)).
+
+% Implementing the same data type (a queue) using two lists
+empty_queue([]/[]).
+
+% Enqueuing here means prepending to the back list
+enqueue(Item, Front/Back, Front/[Item|Back]).
+
+% Dequeuing here means popping the first item from the front list.
+% If the front list is empty: we reverse the back list, return the first element from it 
+% and move the rest to the front adding a new empty back list
+dequeue(Item, [Item|Front]/Back, Front/Back).
+dequeue(Item, []/Back, Front/[]) :-
+    reverse(Back, [Item|Front]).
