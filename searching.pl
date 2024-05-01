@@ -18,6 +18,25 @@ child(f, m).
 child(g, n).
 child(g, o).
 
+% a heuristic function that maps each node to an estimate 
+% of how far that node is to the solution (low values are best)
+
+estimated_distance_to_goal(a, 10).
+estimated_distance_to_goal(b, 9).
+estimated_distance_to_goal(c, 8).
+estimated_distance_to_goal(d, 7).
+estimated_distance_to_goal(e, 7).
+estimated_distance_to_goal(h, 6).
+estimated_distance_to_goal(i, 6).
+estimated_distance_to_goal(j, 6).
+estimated_distance_to_goal(k, 6).
+estimated_distance_to_goal(f, 4).
+estimated_distance_to_goal(g, 5).
+estimated_distance_to_goal(l, 0).
+estimated_distance_to_goal(m, 3).
+estimated_distance_to_goal(n, 4).
+estimated_distance_to_goal(o, 4).
+
 % Searching using "natural" Prolog depth-first search strategy
 
 answer(Y) :-
@@ -32,12 +51,14 @@ child_star(X, Z) :-
 
 % Searching with explicit depth-first search
 
-children(ParentNode, ChildrenNodes) :-
-    findall(ChildNode, child(ParentNode, ChildNode), ChildrenNodes).
+children(ParentNode, ChildrenSet) :-
+    findall(ChildNode, child(ParentNode, ChildNode), ChildrenNodes),
+    sort(ChildrenNodes, ChildrenSet).
 
 depth_first(Answer) :-
     start(Start),
     depth_star(/*Open*/[Start], Answer),
+    writeln(Answer), /* Here I add writeln to print the order in which solutions are searched not only the final result */
     solution(Answer).
 
 depth_star([X|_], X).
@@ -51,6 +72,7 @@ depth_star([X|Open1], Y) :-
 breadth_first_1(Answer) :-
     start(Start),
     breadth_star_1(/*Open*/[Start], Answer),
+    writeln(Answer), /* Here I add a writeln to print the order in which solutions are searched not only the final result */
     solution(Answer).
 
 breadth_star_1([X|_], X).
@@ -143,3 +165,78 @@ queue_length(0, Back, Back, Length, Length).
 queue_length(s(N), [_|Front], Back, L0, Length) :-
     L1 is L0 + 1,
     queue_length(N, Front, Back, L1, Length).
+
+% New depth-first and breadth-first predicates based on the queue package above
+% In this version we work with two lists: the Open set of nodes to visit and
+% the Closed set of nodes already visited and not to be generated again. This
+% allows us to work not only with trees, but also with graphs containing cycles
+% thus preventing non-termination
+
+deep_first(Answer) :-
+    start(Start),
+    deep_star(/*Open*/[Start], /*Closed*/[Start], Answer),
+    solution(Answer).
+
+deep_star([X|_], _, X).
+deep_star([X|Open1], Closed, Y) :-
+    children(X, Children),
+    ord_union(Closed, Children, Closed1, Children1),
+    append(Children1, Open1, Open2),
+    deep_star(Open2, Closed1, Y).
+    
+broad_first(Answer) :-
+    start(Start),
+    queue(Start, Open),
+    broad_star(Open, /*Closed*/[Start], Answer),
+    solution(Answer).
+
+broad_star(Open, Closed, Y) :-
+    queue_head(X, Open1, Open),
+    (   Y = X
+    ;   children(X, Children),
+        ord_union(Closed, Children, Closed1, Children1),
+        queue_last_list(Children1, Open1, Open2),
+        broad_star(Open2, Closed1, Y)
+    ).
+
+% An implementation of greedy best-first search algorithm
+% making use of the heap/priority queue data structure
+
+best_first(Answer) :-
+    start(Start),
+    initial_heap(Start, Heap),
+    best_star(/*Open*/Heap, /*Closed*/[Start], Answer),
+    writeln(Answer), /* Here I add a writeln to print the order in which solutions are searched not only the final result */
+    solution(Answer).
+
+initial_heap(Start, Heap) :-
+    estimated_distance_to_goal(Start, Estimate),
+    empty_heap(Empty),
+    add_to_heap(Empty, Estimate, Start, Heap).
+
+best_star(Heap, Closed, Answer) :-
+    get_from_heap(Heap, _, Node, Heap1),
+    (   Answer = Node
+    ;   children_4(Node, Closed, Closed1, Heap1, Heap2),
+        best_star(Heap2, Closed1, Answer)
+    ).
+
+ordered_children(ParentNode, Closed, Closed1, OrdPairs) :-
+    children(ParentNode, ChildrenSet),
+    ord_union(Closed, ChildrenSet, Closed1, NewChildren),
+    compute_ranks(NewChildren, RawPairs),
+    keysort(RawPairs, OrdPairs).
+
+compute_ranks([], []).
+compute_ranks([Child|Children], [Estimate-Child|Pairs]) :-
+    estimated_distance_to_goal(Child, Estimate),
+    compute_ranks(Children, Pairs).
+      
+children_4(ParentNode, Closed, Closed1, Heap, Heap1) :-
+    ordered_children(ParentNode, Closed, Closed1, OrdPairs),
+    add_children(OrdPairs, Heap, Heap1).
+
+add_children([], Heap, Heap).
+add_children([Estimate-Child|Children], Heap0, Heap) :-
+    add_to_heap(Heap0, Estimate, Child, Heap1),
+    add_children(Children, Heap1, Heap).

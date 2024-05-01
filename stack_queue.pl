@@ -44,3 +44,12 @@ enqueue(Item, Front/Back, Front/[Item|Back]).
 dequeue(Item, [Item|Front]/Back, Front/Back).
 dequeue(Item, []/Back, Front/[]) :-
     reverse(Back, [Item|Front]).
+
+% Implementing a queue using a difference list
+empty_q(L-L).
+
+% Enqueuing
+enqueue_q(Item, L-[Item|Z], L-Z).
+
+% Dequeuing
+dequeue_q(Item, [Item|T]-Z, T-Z).
