@@ -55,17 +55,17 @@ children(ParentNode, ChildrenSet) :-
     findall(ChildNode, child(ParentNode, ChildNode), ChildrenNodes),
     sort(ChildrenNodes, ChildrenSet).
 
-depth_first(Answer) :-
+depth_first_1(Answer) :-
     start(Start),
-    depth_star(/*Open*/[Start], Answer),
+    depth_star_1(/*Open*/[Start], Answer),
     writeln(Answer), /* Here I add writeln to print the order in which solutions are searched not only the final result */
     solution(Answer).
 
-depth_star([X|_], X).
-depth_star([X|Open1], Y) :-
+depth_star_1([X|_], X).
+depth_star_1([X|Open1], Y) :-
     children(X, Children),
     append(Children, Open1, Open2),
-    depth_star(Open2, Y).
+    depth_star_1(Open2, Y).
 
 % Searching with breadth-first search
 
@@ -172,31 +172,31 @@ queue_length(s(N), [_|Front], Back, L0, Length) :-
 % allows us to work not only with trees, but also with graphs containing cycles
 % thus preventing non-termination
 
-deep_first(Answer) :-
+depth_first(Answer) :-
     start(Start),
-    deep_star(/*Open*/[Start], /*Closed*/[Start], Answer),
+    depth_star(/*Open*/[Start], /*Closed*/[Start], Answer),
     solution(Answer).
 
-deep_star([X|_], _, X).
-deep_star([X|Open1], Closed, Y) :-
+depth_star([X|_], _, X).
+depth_star([X|Open1], Closed, Y) :-
     children(X, Children),
     ord_union(Closed, Children, Closed1, Children1),
     append(Children1, Open1, Open2),
-    deep_star(Open2, Closed1, Y).
+    depth_star(Open2, Closed1, Y).
     
-broad_first(Answer) :-
+breadth_first(Answer) :-
     start(Start),
     queue(Start, Open),
-    broad_star(Open, /*Closed*/[Start], Answer),
+    breadth_star(Open, /*Closed*/[Start], Answer),
     solution(Answer).
 
-broad_star(Open, Closed, Y) :-
+breadth_star(Open, Closed, Y) :-
     queue_head(X, Open1, Open),
     (   Y = X
     ;   children(X, Children),
         ord_union(Closed, Children, Closed1, Children1),
         queue_last_list(Children1, Open1, Open2),
-        broad_star(Open2, Closed1, Y)
+        breadth_star(Open2, Closed1, Y)
     ).
 
 % An implementation of greedy best-first search algorithm
