@@ -78,3 +78,28 @@ tree(node(parent, 'a',
                 node(parent, 'l', [], []), node(parent, 'm', [], [])),
             node(parent, 'g', 
                 node(parent, 'n', [], []), node(parent, 'o', [], []))))).
+
+% Susetting a list
+
+red(rain). 
+red(sector). 
+red(mask).
+red(skull). 
+red(scare). 
+red(light).
+
+subset_on_condition([], []).
+subset_on_condition([Item|Items], [Item|Subset]) :-    
+    red(Item),
+    subset_on_condition(Items, Subset).
+subset_on_condition([Item|Items], Subset) :-
+    \+ red(Item),
+    subset_on_condition(Items, Subset).
+
+subset([], []).
+subset([red(Item)|Items], [Item|Subset]) :-
+    subset(Items, Subset).
+subset([white(_)|Items], Subset) :-
+    subset(Items, Subset).
+subset([blue(_)|Items], Subset) :-
+    subset(Items, Subset).
